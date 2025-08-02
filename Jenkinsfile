@@ -8,26 +8,27 @@ pipeline {
     stages {
         stage('Pull Docker Image') {
             steps {
-                bat """
-                    echo Pulling nginx image...
-                    docker pull %IMAGE_NAME%
-                """
+                bat "docker pull %IMAGE_NAME%"
             }
         }
 
         stage('Docker Scout Scan') {
             steps {
-                bat """
-                    echo Running Docker Scout image analysis...
-                    docker scout quickview %IMAGE_NAME%
-                """
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo Logging in to Docker Hub...
+                        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                        docker scout quickview %IMAGE_NAME%
+                    """
+                }
             }
         }
 
         stage('Post-Scan Actions') {
             steps {
-                echo '✅ Docker Scout analysis complete. Review the findings above.'
+                echo '✅ Docker Scout analysis complete.'
             }
         }
     }
 }
+
