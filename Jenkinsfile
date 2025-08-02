@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'windows'  // Make sure your Jenkins agent has this label and Docker + Trivy installed
-    }
+    agent any
 
     environment {
         IMAGE_NAME = 'nginx:latest'
@@ -17,18 +15,18 @@ pipeline {
             }
         }
 
-        stage('Scan with Trivy') {
+        stage('Docker Scout Scan') {
             steps {
                 bat """
-                    echo Scanning Docker image with Trivy...
-                    trivy image --exit-code 0 --severity MEDIUM,HIGH,CRITICAL %IMAGE_NAME% || exit 0
+                    echo Running Docker Scout image analysis...
+                    docker scout quickview %IMAGE_NAME%
                 """
             }
         }
 
         stage('Post-Scan Actions') {
             steps {
-                echo '✅ Vulnerability scan complete. Check the console output above.'
+                echo '✅ Docker Scout analysis complete. Review the findings above.'
             }
         }
     }
